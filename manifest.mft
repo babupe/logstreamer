@@ -1,0 +1,8 @@
+{
+  "entries": [
+    {"url":"s3://myapplogsbabupe/applogs/2015/01/24/03/00.log", "mandatory":true},
+    {"url":"s3://myapplogsbabupe/applogs/2015/01/24/03/01.log", "mandatory":true},
+    {"url":"s3://myapplogsbabupe/applogs/2015/01/24/03/02.log", "mandatory":true},
+    {"url":"s3://myapplogsbabupe/applogs/2015/01/24/03/03.log", "mandatory":true}
+  ]
+}
