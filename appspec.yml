@@ -14,9 +14,3 @@ hooks:
     - location: ./setupCronStreamer.sh    
       timeout: 180
       runas: ec2-user
-    - location: ./setupCronDataGenerator.sh    
-      timeout: 180
-      runas: ec2-user
-    - location: ./setupCronRsCopy.sh    
-      timeout: 180
-      runas: ec2-user
