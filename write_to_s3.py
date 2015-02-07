@@ -27,7 +27,7 @@ while 1:
 		mincomp = '0'+str(mincomp)
 	if os.path.isfile('/fs-data/applogs-'+currTime[:4]+currTime[5:7]+currTime[8:10]+currTime[11:13]+str(mincomp)+'.log'):
 		k = Key(buckt)
-		k.key = 'applogs/'+currTime[:4]+'/'+currTime[5:7]+'/'+currTime[8:10]+'/'+currTime[11:13]+'/'+str(mincomp)+'.log'
+		k.key = str(mincomp)+'/'+currTime[11:13]+'/'+currTime[8:10]+'/'+currTime[5:7]+'/'+currTime[:4]+'.log'
 		k.set_contents_from_filename('/fs-data/applogs-'+currTime[:4]+currTime[5:7]+currTime[8:10]+currTime[11:13]+str(mincomp)+'.log')	
 		os.remove('/fs-data/applogs-'+currTime[:4]+currTime[5:7]+currTime[8:10]+currTime[11:13]+str(mincomp)+'.log')
 	time.sleep(10)
