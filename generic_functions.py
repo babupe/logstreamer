@@ -280,10 +280,15 @@ def createNewStreamingJob(dynamodb_conn,configValues):
 
 def check_cluster_running(emr_conn,jobid):
     status = emr_conn.describe_jobflow(jobid)
-    while str(status.__dict__['state']) not in ('RUNNING','WAITING'):
+    retry_counter = 1
+    while str(status.__dict__['state']) not in ('RUNNING','WAITING') and retry_counter < 10:
         logger.info('Cluster not yet ready for use!! Sleeping to recheck again in a few!!!')
         sleep(20)
+	retry_counter += 1
         status = emr_conn.describe_jobflow(jobid)
+    if str(status.__dict__['state']) not in ('RUNNING','WAITING'):
+	logger.info('Cluster not yet ready for use!! Quitting to retry again in a few!')
+	sys.exit(0)
     logger.info('Cluster with job Id '+jobid+' ready for use!!!')
     return str(status.__dict__['state'])
 
