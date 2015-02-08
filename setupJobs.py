@@ -106,6 +106,6 @@ def main():
       logger.info('Creating the job for Redshift to copy!!')
       createRsJob(s3_conn,configValues['S3ManifestBucket'],fileList,sqs_conn,configValues['rsJobQueueName'])
       logger.info('Added new Streaming step to JobFlow '+str(jobflowId['jobflowid'])+' and added the job for redshift to process!')
-      logger.info('Sleeping now! Will check back again for new data to process!!')
+      trackCurrentStep.join() 
 if __name__ == "__main__":
   main()
