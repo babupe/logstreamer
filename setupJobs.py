@@ -77,7 +77,7 @@ def main():
     logger.info('Config values extracted!!')
     mtime = os.stat('/home/ec2-user/setupJobs.py')[8]
     while 1:
-    	if mtime != os.stat('/home/ec2-user/setupJobs.py')[8]
+    	if mtime != os.stat('/home/ec2-user/setupJobs.py')[8]:
 		try:
 			trackCurrentStep.join()
 		except:
