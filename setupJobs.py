@@ -75,37 +75,45 @@ def main():
     logger.info('Config to use '+currConfigFile)
     configValues=getS3KeyContents(s3_conn,currConfigFile)
     logger.info('Config values extracted!!')
-    try:
-      jobflowId = return_value_from_dynamodb(dynamodb_conn,configValues['ddbTableNameForState'],1)
-      if check_emr_jobflow(str(jobflowId['jobflowid'])) not in ('RUNNING','WAITING','STARTING','BOOTSTRAPPING') and getRedshiftClusterState(rs_conn,configValues['rsClusterId']).upper() != 'AVAILABLE':
-        logger.error('Either Redshift cluster or EMR Job is not yet up. Will retry again after logstreamer does its work!!!')
-        sys.exit(1)
-      else:
-        check_cluster_running(emr_conn,str(jobflowId['jobflowid']))
-    except boto.dynamodb.exceptions.DynamoDBKeyNotFoundError:
-      logger.error('No JobFlow available to add steps! Quitting!!!')
-      sys.exit(1)
-    logger.info('Getting input files to add as steps to EMR JobFLow!!!')
-    keystoProcess = getKeystoProcess(sqs_conn,str(configValues['sqsQueueName']))
-    if len(keystoProcess) == 0:
-      logger.info('No Input files to process! Quitting to retry during next run!!!')
-    else:
-      logger.info('We have Input files to be processed!!')
-      fileList = getFileList(keystoProcess,configValues['s3BuckettoStream'])
-      outputDirectory = getOutputDirectory()
-      stepName = ''.join(outputDirectory.split('/'))
-      outputDirectory = 's3://'+str(configValues['outputS3Bucket'])+outputDirectory
-      mapperKey = configValues['mapperS3Location'].split('/')[-1]
-      logger.info('Creating new Streaming step with input files!')
-      step = createNewStreamingStep(stepName,fileList,outputDirectory,mapperKey,configValues['mapperS3Location'],configValues['reducerS3Location'])
-      addSteptoJobFlow(emr_conn,str(jobflowId['jobflowid']),step)
-      stepid = getCurrentStep(emr_conn,str(jobflowId['jobflowid']))
-      trackCurrentStep = trackStepClass(trackStep,sqs_conn,keystoProcess,emr_conn,str(jobflowId['jobflowid']),stepid)
-      trackCurrentStep.daemon = True
-      trackCurrentStep.start()
-      logger.info('Creating the job for Redshift to copy!!')
-      createRsJob(s3_conn,configValues['S3ManifestBucket'],fileList,sqs_conn,configValues['rsJobQueueName'])
-      logger.info('Added new Streaming step to JobFlow '+str(jobflowId['jobflowid'])+' and added the job for redshift to process!')
-      trackCurrentStep.join() 
+    mtime = os.stat('/home/ec2-user/setupJobs.py')[8]
+    while 1:
+    	if mtime != os.stat('/home/ec2-user/setupJobs.py')[8]
+		try:
+			trackCurrentStep.join()
+		except:
+			sys.exit(0)
+		sys.exit(0)
+    	try:
+      		jobflowId = return_value_from_dynamodb(dynamodb_conn,configValues['ddbTableNameForState'],1)
+      		if check_emr_jobflow(str(jobflowId['jobflowid'])) not in ('RUNNING','WAITING','STARTING','BOOTSTRAPPING') and getRedshiftClusterState(rs_conn,configValues['rsClusterId']).upper() != 'AVAILABLE':
+        		logger.error('Either Redshift cluster or EMR Job is not yet up. Will retry again after logstreamer does its work!!!')
+        		sys.exit(1)
+      		else:
+        		check_cluster_running(emr_conn,str(jobflowId['jobflowid']))
+    	except boto.dynamodb.exceptions.DynamoDBKeyNotFoundError:
+      		logger.error('No JobFlow available to add steps! Quitting!!!')
+      		sys.exit(1)
+    	logger.info('Getting input files to add as steps to EMR JobFLow!!!')
+    	keystoProcess = getKeystoProcess(sqs_conn,str(configValues['sqsQueueName']))
+    	if len(keystoProcess) == 0:
+      		logger.info('No Input files to process! Quitting to retry during next run!!!')
+    	else:
+      		logger.info('We have Input files to be processed!!')
+      		fileList = getFileList(keystoProcess,configValues['s3BuckettoStream'])
+      		outputDirectory = getOutputDirectory()
+      		stepName = ''.join(outputDirectory.split('/'))
+      		outputDirectory = 's3://'+str(configValues['outputS3Bucket'])+outputDirectory
+      		mapperKey = configValues['mapperS3Location'].split('/')[-1]
+      		logger.info('Creating new Streaming step with input files!')
+      		step = createNewStreamingStep(stepName,fileList,outputDirectory,mapperKey,configValues['mapperS3Location'],configValues['reducerS3Location'])
+      		addSteptoJobFlow(emr_conn,str(jobflowId['jobflowid']),step)
+      		stepid = getCurrentStep(emr_conn,str(jobflowId['jobflowid']))
+      		trackCurrentStep = trackStepClass(trackStep,sqs_conn,keystoProcess,emr_conn,str(jobflowId['jobflowid']),stepid)
+      		trackCurrentStep.daemon = True
+      		trackCurrentStep.start()
+      		logger.info('Creating the job for Redshift to copy!!')
+      		createRsJob(s3_conn,configValues['S3ManifestBucket'],fileList,sqs_conn,configValues['rsJobQueueName'])
+      		logger.info('Added new Streaming step to JobFlow '+str(jobflowId['jobflowid'])+' and added the job for redshift to process!')
+	sleep(60)
 if __name__ == "__main__":
   main()
